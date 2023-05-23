@@ -1,0 +1,98 @@
+-- 1. Selecione os nomes dos Clientes particulares que realizaram corridas com táxis da marca "Ford".
+
+SELECT nome
+FROM
+    (SELECT id, nome
+     FROM cliente
+     NATURAL JOIN cliente_particular)
+AS clientes
+NATURAL JOIN
+    (SELECT cliid as id
+     FROM corrida
+     NATURAL JOIN taxi
+     WHERE marca = 'Ford')
+AS corridas;
+
+
+
+-- 2. Táxis que nunca foram utilizados em corridas.
+
+SELECT *
+FROM taxi
+LEFT JOIN corrida
+ON taxi.placa = corrida.placa
+WHERE corrida.placa IS null;
+
+
+
+-- 3. Lista de clientes e suas corridas, incluindo os clientes sem corridas.
+
+SELECT *
+FROM cliente
+FULL OUTER JOIN corrida
+ON cliente.id = corrida.cliid;
+
+
+
+-- 4. Contagem de corridas por cliente particular.
+
+SELECT cpf, COUNT(*)
+FROM corrida
+INNER JOIN cliente_particular
+ON corrida.cliid = cliente_particular.id
+GROUP BY cpf;
+
+
+
+-- 5. Corridas dos clientes da empresa com CNPJ terminando em "92".
+
+SELECT *
+FROM corrida
+INNER JOIN cliente_empresa
+ON cliid = id
+WHERE cnpj = 'CNPJ92';
+
+
+
+-- 6. Corridas com clientes particulares e de empresa associados.
+
+SELECT cliid, placa, datapedido, cpf, cnpj
+FROM
+    (SELECT *
+     FROM corrida
+     LEFT JOIN cliente_particular as p
+     ON cliid = p.id)
+AS corridas_particular
+LEFT JOIN cliente_empresa as e
+ON cliid = e.id;
+
+
+
+-- 7. Média de anos de fabricação dos táxis utilizados por cada cliente particular.
+
+SELECT AVG(2023 - anofab)
+FROM taxi
+NATURAL JOIN
+    (SELECT placa
+     FROM corrida
+     INNER JOIN cliente_particular
+     ON cliid = id)
+AS corridas_particular;
+
+
+
+-- 8. Clientes particulares que realizaram corridas com táxis da marca "Ford" e "Volkswagen".
+
+SELECT *
+FROM cliente
+NATURAL JOIN
+    (SELECT id
+     FROM cliente_particular
+     INNER JOIN
+        (SELECT cliid
+         FROM corrida
+         NATURAL JOIN taxi
+         WHERE (marca = 'Ford' OR marca = 'Volkswagen'))
+     AS taxis_que_fizeram_corrida
+     ON cliid = id)
+AS clientes_particulares_que_correram_com_taxis_especificos;

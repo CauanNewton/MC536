@@ -1,0 +1,84 @@
+-- 1. Obter o modelo de todos os táxis exceto daquele cujo reg_adetax é 1234.
+
+SELECT modelo
+FROM taxi
+WHERE reg_adetax <> '1234';
+
+
+
+-- 2. Para cada táxi que fez alguma corrida obtenha a sua placa, modelo e ano de fabricação.
+
+SELECT placa, modelo, anofab
+FROM taxi
+WHERE placa IN
+    (SELECT placa FROM corrida);
+
+
+
+-- 3. Obter, sem repetições, o modelo dos carros que já fizeram alguma corrida.
+
+SELECT DISTINCT modelo FROM taxi
+WHERE placa IN
+    (SELECT placa FROM corrida);
+
+
+
+-- 4. Obter as placas dos carros que já fizeram pelo menos uma corrida para o cliid 345
+
+SELECT placa FROM taxi
+WHERE placa IN
+    (SELECT placa FROM corrida
+    WHERE cliid = '345');
+
+
+
+-- 5. Obter o id dos clientes que nunca fizeram uma corrida
+
+SELECT id FROM cliente
+EXCEPT
+    (SELECT id FROM cliente
+    WHERE id IN
+        (SELECT cliid FROM corrida));
+
+
+
+-- 6. Obter o modelo dos veículos mais velhos que todos os outros
+
+SELECT modelo FROM taxi
+WHERE anofab IN
+    (SELECT MIN(anofab) FROM taxi);
+
+
+
+-- 7. Obter a placa de todos os táxis que fizeram corridas para Quincas
+
+SELECT placa FROM taxi
+WHERE placa IN
+    (SELECT placa FROM corrida
+    WHERE cliid IN
+        (SELECT id FROM cliente
+        WHERE nome = 'Quincas'));
+
+
+
+-- 8. Obter o nome dos clientes que já fizeram mais de uma corrida
+
+SELECT nome FROM cliente
+WHERE id IN
+    (SELECT cliid FROM
+        (SELECT cliid, COUNT(*) as n_corridas
+        FROM corrida
+        GROUP BY cliid)
+    AS corridas_dos_clientes
+    WHERE n_corridas > 1);
+
+
+-- 9. Obter o nome dos clientes conveniados por empresa que já fizeram corrida com um táxi fabricado neste século
+SELECT nome FROM cliente
+WHERE id IN
+    (SELECT id FROM cliente_empresa
+    WHERE id IN
+        (SELECT cliid FROM corrida
+        WHERE placa IN
+            (SELECT placa FROM taxi
+            WHERE anofab > 1999)));
